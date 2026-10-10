@@ -5,13 +5,13 @@
 </script>
 
 <svelte:head>
-	<title>FedinAi — Asisten Coding & Workspace AI</title>
+	<title>FerdinAi — Asisten Coding & Workspace AI</title>
 </svelte:head>
 
 <div class="auth-wrapper">
 	<div class="auth-shell">
-		<!-- Left / Intro Panel: Penjelasan Aplikasi FedinAi -->
-		<section class="intro-panel" aria-label="Tentang FedinAi">
+		<!-- Left / Intro Panel: Penjelasan Aplikasi FerdinAi -->
+		<section class="intro-panel" aria-label="Tentang FerdinAi">
 			<div class="intro-badge">
 				<span class="sparkle-icon">✨</span>
 				<span>TEMAN DISKUSI & ASISTEN CODING AI</span>
@@ -22,28 +22,52 @@
 			</h1>
 
 			<p class="intro-desc">
-				<strong>FedinAi</strong> adalah asisten pintar privat bernuansa <em>Cozy Studio</em>. Tempat aman dan nyaman untuk membedah error, konsultasi arsitektur kode, hingga brainstorming ide tanpa ribet.
+				<strong>FerdinAi</strong> adalah asisten pintar privat bernuansa
+				<em>Cozy Studio</em>. Tempat aman dan nyaman untuk membedah
+				error, konsultasi arsitektur kode, hingga brainstorming ide
+				tanpa ribet.
 			</p>
 
-			<!-- 4 Highlight Kemampuan FedinAi -->
+			<!-- 4 Highlight Kemampuan FerdinAi -->
 			<div class="feature-grid">
 				<div class="feature-card">
 					<div class="feature-bubble bubble-matcha">
-						<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-							<path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+						<svg
+							width="18"
+							height="18"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+						>
+							<path
+								d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"
+							/>
 							<circle cx="12" cy="12" r="3" />
 						</svg>
 					</div>
 					<div class="feature-text">
 						<span class="feature-title">🐞 Analisis & Fix Bug</span>
-						<p class="feature-sub">Pecahkan pesan error yang bikin pusing dengan penjelasan solusi yang runut.</p>
+						<p class="feature-sub">
+							Pecahkan pesan error yang bikin pusing dengan
+							penjelasan solusi yang runut.
+						</p>
 					</div>
 				</div>
 
 				<div class="feature-card">
 					<div class="feature-bubble bubble-honey">
-						<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-							<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+						<svg
+							width="18"
+							height="18"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+						>
+							<path
+								d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+							/>
 							<polyline points="14 2 14 8 20 8" />
 							<line x1="16" y1="13" x2="8" y2="13" />
 							<line x1="16" y1="17" x2="8" y2="17" />
@@ -51,37 +75,75 @@
 						</svg>
 					</div>
 					<div class="feature-text">
-						<span class="feature-title">🔍 Review & Rapikan Kode</span>
-						<p class="feature-sub">Bikin kodemu lebih bersih (*clean code*), aman, dan mudah dipahami.</p>
+						<span class="feature-title"
+							>🔍 Review & Rapikan Kode</span
+						>
+						<p class="feature-sub">
+							Bikin kodemu lebih bersih (*clean code*), aman, dan
+							mudah dipahami.
+						</p>
 					</div>
 				</div>
 
 				<div class="feature-card">
 					<div class="feature-bubble bubble-rose">
-						<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-							<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+						<svg
+							width="18"
+							height="18"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+						>
+							<path
+								d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"
+							/>
 							<circle cx="9" cy="7" r="4" />
 							<path d="M23 21v-2a4 4 0 0 0-3-3.87" />
 							<path d="M16 3.13a4 4 0 0 1 0 7.75" />
 						</svg>
 					</div>
 					<div class="feature-text">
-						<span class="feature-title">🍵 Multi-Profile & Persona</span>
-						<p class="feature-sub">Ganti profil ruang kerja sesuai proyek, lengkap dengan instruksi AI kustom.</p>
+						<span class="feature-title"
+							>🍵 Multi-Profile & Persona</span
+						>
+						<p class="feature-sub">
+							Ganti profil ruang kerja sesuai proyek, lengkap
+							dengan instruksi AI kustom.
+						</p>
 					</div>
 				</div>
 
 				<div class="feature-card">
 					<div class="feature-bubble bubble-lilac">
-						<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-							<rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+						<svg
+							width="18"
+							height="18"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+						>
+							<rect
+								x="3"
+								y="3"
+								width="18"
+								height="18"
+								rx="2"
+								ry="2"
+							/>
 							<circle cx="8.5" cy="8.5" r="1.5" />
 							<polyline points="21 15 16 10 5 21" />
 						</svg>
 					</div>
 					<div class="feature-text">
-						<span class="feature-title">📎 Analisis Gambar Error</span>
-						<p class="feature-sub">Tarik & lepas tangkapan layar error atau berkas untuk dianalisis langsung.</p>
+						<span class="feature-title"
+							>📎 Analisis Gambar Error</span
+						>
+						<p class="feature-sub">
+							Tarik & lepas tangkapan layar error atau berkas
+							untuk dianalisis langsung.
+						</p>
 					</div>
 				</div>
 			</div>
@@ -89,7 +151,10 @@
 			<!-- Note Privasi & Keamanan -->
 			<div class="intro-privacy-pill">
 				<span class="privacy-icon">🔒</span>
-				<span><strong>Privat & Lokal:</strong> Riwayat chat & kunci disimpan aman di komputermu.</span>
+				<span
+					><strong>Privat & Lokal:</strong> Riwayat chat & kunci disimpan
+					aman di komputermu.</span
+				>
 			</div>
 		</section>
 
@@ -110,12 +175,20 @@
 				<div class="brand-section">
 					<div class="logo-box">
 						<svg class="logo-icon" viewBox="0 0 44 44" fill="none">
-							<rect width="44" height="44" rx="14" fill="#2d5a3f" />
+							<rect
+								width="44"
+								height="44"
+								rx="14"
+								fill="#2d5a3f"
+							/>
 							<!-- Stylized minimal clean leaf & sparkle -->
-							<path d="M22 10c-7 0-12 5.5-12 12.5 0 8 12 15 12 15s12-7 12-15C34 15.5 29 10 22 10zm0 7.5c3.6 0 6.5 2.8 6.5 6.5 0 4.5-6.5 9-6.5 9s-6.5-4.5-6.5-9c0-3.7 2.9-6.5 6.5-6.5z" fill="#fef3c7" />
+							<path
+								d="M22 10c-7 0-12 5.5-12 12.5 0 8 12 15 12 15s12-7 12-15C34 15.5 29 10 22 10zm0 7.5c3.6 0 6.5 2.8 6.5 6.5 0 4.5-6.5 9-6.5 9s-6.5-4.5-6.5-9c0-3.7 2.9-6.5 6.5-6.5z"
+								fill="#fef3c7"
+							/>
 						</svg>
 					</div>
-					<h2 class="brand-title">FEDINAI</h2>
+					<h2 class="brand-title">FERDINAI</h2>
 					<p class="brand-subtitle">MASUK KE RUANG KERJA 🌿</p>
 				</div>
 
@@ -128,14 +201,28 @@
 						</label>
 						<div class="input-wrapper">
 							<span class="input-icon">
-								<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-									<rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+								<svg
+									width="16"
+									height="16"
+									viewBox="0 0 24 24"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2"
+								>
+									<rect
+										x="3"
+										y="11"
+										width="18"
+										height="11"
+										rx="2"
+										ry="2"
+									/>
 									<path d="M7 11V7a5 5 0 0 1 10 0v4" />
 								</svg>
 							</span>
 							<input
 								id="password-input"
-								type={showPassword ? 'text' : 'password'}
+								type={showPassword ? "text" : "password"}
 								name="password"
 								placeholder="Ketik password workspace..."
 								required
@@ -145,17 +232,37 @@
 								type="button"
 								class="toggle-visibility"
 								onclick={() => (showPassword = !showPassword)}
-								title={showPassword ? 'Sembunyikan' : 'Tampilkan'}
+								title={showPassword
+									? "Sembunyikan"
+									: "Tampilkan"}
 								tabindex="-1"
 							>
 								{#if showPassword}
-									<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-										<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+									<svg
+										width="16"
+										height="16"
+										viewBox="0 0 24 24"
+										fill="none"
+										stroke="currentColor"
+										stroke-width="2"
+									>
+										<path
+											d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
+										/>
 										<line x1="1" y1="1" x2="23" y2="23" />
 									</svg>
 								{:else}
-									<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-										<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+									<svg
+										width="16"
+										height="16"
+										viewBox="0 0 24 24"
+										fill="none"
+										stroke="currentColor"
+										stroke-width="2"
+									>
+										<path
+											d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
+										/>
 										<circle cx="12" cy="12" r="3" />
 									</svg>
 								{/if}
@@ -170,10 +277,25 @@
 						</div>
 					{/if}
 
-					<button type="submit" class="auth-btn" disabled={submitting}>
-						<span class="btn-text">{submitting ? 'Membuka...' : 'Buka Workspace ✨'}</span>
+					<button
+						type="submit"
+						class="auth-btn"
+						disabled={submitting}
+					>
+						<span class="btn-text"
+							>{submitting
+								? "Membuka..."
+								: "Buka Workspace ✨"}</span
+						>
 						<span class="btn-arrow">
-							<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+							<svg
+								width="15"
+								height="15"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2.5"
+							>
 								<line x1="5" y1="12" x2="19" y2="12" />
 								<polyline points="12 5 19 12 12 19" />
 							</svg>
@@ -199,7 +321,11 @@
 		margin: 0;
 		background: #f7f5ef;
 		color: #1c1917;
-		font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+		font-family:
+			"Plus Jakarta Sans",
+			system-ui,
+			-apple-system,
+			sans-serif;
 	}
 
 	:global(*) {
@@ -239,7 +365,7 @@
 		background: #eaf3eb;
 		border: 1px solid #b7dcb8;
 		border-radius: 20px;
-		font-family: 'JetBrains Mono', monospace;
+		font-family: "JetBrains Mono", monospace;
 		font-size: 10px;
 		font-weight: 700;
 		color: #2d5a3f;
@@ -253,7 +379,7 @@
 
 	.intro-headline {
 		margin: 0;
-		font-family: 'Outfit', sans-serif;
+		font-family: "Outfit", sans-serif;
 		font-size: 29px;
 		font-weight: 800;
 		line-height: 1.25;
@@ -294,7 +420,9 @@
 		border: 1px solid #e7e2d7;
 		border-radius: 12px;
 		box-shadow: 0 1px 3px rgba(45, 90, 63, 0.03);
-		transition: transform 0.15s ease, border-color 0.15s ease;
+		transition:
+			transform 0.15s ease,
+			border-color 0.15s ease;
 	}
 
 	.feature-card:hover {
@@ -388,7 +516,7 @@
 	.telemetry-bar {
 		display: flex;
 		justify-content: space-between;
-		font-family: 'JetBrains Mono', monospace;
+		font-family: "JetBrains Mono", monospace;
 		font-size: 11px;
 		color: #78716c;
 		letter-spacing: 0.05em;
@@ -435,7 +563,7 @@
 
 	.brand-title {
 		margin: 0;
-		font-family: 'Outfit', sans-serif;
+		font-family: "Outfit", sans-serif;
 		font-size: 26px;
 		font-weight: 800;
 		letter-spacing: 0.05em;
@@ -444,7 +572,7 @@
 
 	.brand-subtitle {
 		margin: 6px 0 0;
-		font-family: 'JetBrains Mono', monospace;
+		font-family: "JetBrains Mono", monospace;
 		font-size: 10.5px;
 		letter-spacing: 0.08em;
 		color: #57534e;
@@ -493,8 +621,8 @@
 		pointer-events: none;
 	}
 
-	input[type='password'],
-	input[type='text'] {
+	input[type="password"],
+	input[type="text"] {
 		width: 100%;
 		padding: 11px 40px 11px 38px;
 		background: #faf9f6;
@@ -503,7 +631,9 @@
 		color: #1c1917;
 		font-size: 13.5px;
 		outline: none;
-		transition: border-color 0.15s ease, background 0.15s ease;
+		transition:
+			border-color 0.15s ease,
+			background 0.15s ease;
 	}
 
 	input:focus {
@@ -513,7 +643,7 @@
 
 	input::placeholder {
 		color: #a8a29e;
-		font-family: 'Plus Jakarta Sans', sans-serif;
+		font-family: "Plus Jakarta Sans", sans-serif;
 	}
 
 	.toggle-visibility {
@@ -561,7 +691,7 @@
 		border: 1px solid #2d5a3f;
 		background: #2d5a3f;
 		color: #ffffff;
-		font-family: 'Outfit', sans-serif;
+		font-family: "Outfit", sans-serif;
 		font-size: 13.5px;
 		font-weight: 700;
 		letter-spacing: 0.03em;
@@ -597,7 +727,7 @@
 		margin-top: 22px;
 		padding-top: 16px;
 		border-top: 1px solid #f2ede4;
-		font-family: 'JetBrains Mono', monospace;
+		font-family: "JetBrains Mono", monospace;
 		font-size: 10px;
 		color: #78716c;
 	}

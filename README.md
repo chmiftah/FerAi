@@ -1,6 +1,6 @@
 # FerAi
 
-> **FedinAi (FerAi)** — Asisten Pintar & Teman Diskusi Coding AI bernuansa *Cozy Studio Matcha & Warm Honey*.
+> **FerdinAi (FerAi)** — Asisten Pintar & Teman Diskusi Coding AI bernuansa *Cozy Studio Matcha & Warm Honey*.
 
 Aplikasi AI workspace privat berbasis SvelteKit untuk membantu developer menganalisis bug, mereview kode, berdiskusi ide arsitektur, dan mengelola multi-profil ruang kerja secara terorganisir.
 

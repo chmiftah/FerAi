@@ -1,37 +1,39 @@
 <script>
-	import { onMount, tick } from 'svelte';
-	import { MODES } from '$lib/modes.js';
-	import { sorot } from '$lib/highlight.js';
-	import { marked } from 'marked';
+	import { onMount, tick } from "svelte";
+	import { MODES } from "$lib/modes.js";
+	import { sorot } from "$lib/highlight.js";
+	import { marked } from "marked";
 
 	marked.setOptions({
 		gfm: true,
-		breaks: true
+		breaks: true,
 	});
 
-	const FENCE = '```';
+	const FENCE = "```";
 
 	let { data } = $props();
 
 	let sessions = $state([]);
 	let current = $state(null);
 	let messages = $state([]);
-	let input = $state('');
+	let input = $state("");
 	let busy = $state(false);
-	let error = $state('');
+	let error = $state("");
 	let box = $state();
-	const ultimoUser = $derived(messages.findLastIndex((m) => m.role === 'user'));
+	const ultimoUser = $derived(
+		messages.findLastIndex((m) => m.role === "user"),
+	);
 	let images = $state([]);
 	let fileInput = $state();
 	let abort;
 	let editing = $state(false);
-	let instruksi = $state('');
+	let instruksi = $state("");
 	let dlg = $state();
 	let profil = $state(data.aktif);
 	let profiles = $state(data.profiles);
 	let files = $state([]);
-	let mode = $state('umum');
-	let q = $state('');
+	let mode = $state("umum");
+	let q = $state("");
 	let results = $state(null);
 	let timer;
 	let dragging = $state(false);
@@ -48,31 +50,31 @@
 	}
 
 	function openProfileSwitcher() {
-		if (typeof window !== 'undefined' && window.innerWidth < 768) {
+		if (typeof window !== "undefined" && window.innerWidth < 768) {
 			sidebarOpen = true;
 		}
 		profileMenuOpen = true;
 	}
 
 	function handleKeydown(e) {
-		if (e.key === 'Escape' && profileMenuOpen) {
+		if (e.key === "Escape" && profileMenuOpen) {
 			profileMenuOpen = false;
 		}
 	}
 
 	const AVATAR_PALETTES = [
-		{ bg: '#d8ebd9', text: '#1e462c', border: '#b7dcb8' }, // Matcha mint
-		{ bg: '#fef3c7', text: '#92400e', border: '#fde68a' }, // Warm honey
-		{ bg: '#ffe4e6', text: '#9f1239', border: '#fecdd3' }, // Rose peach
-		{ bg: '#ede9fe', text: '#5b21b6', border: '#ddd6fe' }, // Soft lilac
-		{ bg: '#f5f0e6', text: '#78350f', border: '#e6dcce' }, // Cream oat
-		{ bg: '#e0f2fe', text: '#075985', border: '#bae6fd' }, // Sky breeze
-		{ bg: '#fef9c3', text: '#854d0e', border: '#fef08a' }  // Lemon curd
+		{ bg: "#d8ebd9", text: "#1e462c", border: "#b7dcb8" }, // Matcha mint
+		{ bg: "#fef3c7", text: "#92400e", border: "#fde68a" }, // Warm honey
+		{ bg: "#ffe4e6", text: "#9f1239", border: "#fecdd3" }, // Rose peach
+		{ bg: "#ede9fe", text: "#5b21b6", border: "#ddd6fe" }, // Soft lilac
+		{ bg: "#f5f0e6", text: "#78350f", border: "#e6dcce" }, // Cream oat
+		{ bg: "#e0f2fe", text: "#075985", border: "#bae6fd" }, // Sky breeze
+		{ bg: "#fef9c3", text: "#854d0e", border: "#fef08a" }, // Lemon curd
 	];
 
 	function getAvatarStyle(name) {
 		let hash = 0;
-		for (let i = 0; i < (name || '').length; i++) {
+		for (let i = 0; i < (name || "").length; i++) {
 			hash = (hash << 5) - hash + name.charCodeAt(i);
 		}
 		const p = AVATAR_PALETTES[Math.abs(hash) % AVATAR_PALETTES.length];
@@ -80,7 +82,7 @@
 	}
 
 	function getInitials(name) {
-		if (!name) return 'AI';
+		if (!name) return "AI";
 		const parts = name.trim().split(/\s+/);
 		if (parts.length > 1) return (parts[0][0] + parts[1][0]).toUpperCase();
 		return name.slice(0, 2).toUpperCase();
@@ -88,33 +90,33 @@
 
 	const starterPrompts = [
 		{
-			title: '🐞 Analisis & Fix Bug',
-			desc: 'Cari tahu akar masalah error dan berikan solusi perbaikan yang simpel.',
-			mode: 'bug',
-			prompt: 'Tolong bantu analisis error berikut dan temukan cara memperbaikinya:'
+			title: "🐞 Analisis & Fix Bug",
+			desc: "Cari tahu akar masalah error dan berikan solusi perbaikan yang simpel.",
+			mode: "bug",
+			prompt: "Tolong bantu analisis error berikut dan temukan cara memperbaikinya:",
 		},
 		{
-			title: '🔍 Review Kerapian Kode',
-			desc: 'Audit kode agar lebih rapi, aman, dan mudah dipahami.',
-			mode: 'review',
-			prompt: 'Tolong lakukan review untuk kode ini agar lebih rapi dan aman:'
+			title: "🔍 Review Kerapian Kode",
+			desc: "Audit kode agar lebih rapi, aman, dan mudah dipahami.",
+			mode: "review",
+			prompt: "Tolong lakukan review untuk kode ini agar lebih rapi dan aman:",
 		},
 		{
-			title: '🧪 Buat Unit Tests',
-			desc: 'Bikinkan skenario test otomatis lengkap untuk berbagai kondisi.',
-			mode: 'test',
-			prompt: 'Tolong buatkan unit test untuk fungsi kode berikut:'
+			title: "🧪 Buat Unit Tests",
+			desc: "Bikinkan skenario test otomatis lengkap untuk berbagai kondisi.",
+			mode: "test",
+			prompt: "Tolong buatkan unit test untuk fungsi kode berikut:",
 		},
 		{
-			title: '💡 Ide Refaktor & Optimasi',
-			desc: 'Sederhanakan logika kode agar lebih clean dan efisien.',
-			mode: 'refactor',
-			prompt: 'Tolong refaktor potongan kode ini biar lebih simpel dan bersih:'
-		}
+			title: "💡 Ide Refaktor & Optimasi",
+			desc: "Sederhanakan logika kode agar lebih clean dan efisien.",
+			mode: "refactor",
+			prompt: "Tolong refaktor potongan kode ini biar lebih simpel dan bersih:",
+		},
 	];
 
 	async function loadSessions() {
-		const res = await fetch('/api/sessions');
+		const res = await fetch("/api/sessions");
 		if (res.ok) sessions = await res.json();
 	}
 
@@ -124,59 +126,75 @@
 		current = id;
 		editing = false;
 		messages = await res.json();
-		error = '';
+		error = "";
 		sidebarOpen = false;
 		scrollDown();
 	}
 
 	async function kelolaProfil(method, body) {
 		if (busy) return;
-		const res = await fetch('/api/profiles', {
+		const res = await fetch("/api/profiles", {
 			method,
-			headers: { 'content-type': 'application/json' },
-			body: JSON.stringify(body)
+			headers: { "content-type": "application/json" },
+			body: JSON.stringify(body),
 		});
 		const j = await res.json().catch(() => ({}));
-		if (!res.ok) { error = j.error || `HTTP ${res.status}`; return; }
-		error = '';
+		if (!res.ok) {
+			error = j.error || `HTTP ${res.status}`;
+			return;
+		}
+		error = "";
 		profiles = j.profiles;
 		if (j.aktif !== profil) {
 			profil = j.aktif;
-			if (method !== 'PATCH') { newChat(); q = ''; results = null; }
+			if (method !== "PATCH") {
+				newChat();
+				q = "";
+				results = null;
+			}
 		}
 		await loadSessions();
 	}
 
 	function tambahProfil() {
 		profileMenuOpen = false;
-		const nama = prompt('Nama profile baru:');
-		if (nama?.trim()) kelolaProfil('POST', { nama });
+		const nama = prompt("Nama profile baru:");
+		if (nama?.trim()) kelolaProfil("POST", { nama });
 	}
 
 	function ubahNamaProfil() {
 		profileMenuOpen = false;
 		const baru = prompt(`Ganti nama profile "${profil}" menjadi:`, profil);
-		if (baru?.trim() && baru.trim() !== profil) kelolaProfil('PATCH', { nama: profil, baru });
+		if (baru?.trim() && baru.trim() !== profil)
+			kelolaProfil("PATCH", { nama: profil, baru });
 	}
 
 	function hapusProfil() {
 		profileMenuOpen = false;
-		if (!confirm(`Hapus profile "${profil}" beserta SEMUA obrolannya? Tindakan ini tidak bisa dibatalkan.`)) return;
-		kelolaProfil('DELETE', { nama: profil });
+		if (
+			!confirm(
+				`Hapus profile "${profil}" beserta SEMUA obrolannya? Tindakan ini tidak bisa dibatalkan.`,
+			)
+		)
+			return;
+		kelolaProfil("DELETE", { nama: profil });
 	}
 
 	async function gantiProfil(nama) {
 		profileMenuOpen = false;
 		if (nama === profil || busy) return;
-		const res = await fetch('/api/profile', {
-			method: 'POST',
-			headers: { 'content-type': 'application/json' },
-			body: JSON.stringify({ nama })
+		const res = await fetch("/api/profile", {
+			method: "POST",
+			headers: { "content-type": "application/json" },
+			body: JSON.stringify({ nama }),
 		});
-		if (!res.ok) { error = 'Gagal ganti profile'; return; }
+		if (!res.ok) {
+			error = "Gagal ganti profile";
+			return;
+		}
 		profil = nama;
 		newChat();
-		q = '';
+		q = "";
 		results = null;
 		await loadSessions();
 	}
@@ -185,14 +203,14 @@
 		current = null;
 		editing = false;
 		messages = [];
-		error = '';
+		error = "";
 		sidebarOpen = false;
 	}
 
 	async function remove(id, e) {
 		e?.stopPropagation();
-		if (!confirm('Hapus obrolan ini dari database?')) return;
-		await fetch(`/api/sessions/${id}`, { method: 'DELETE' });
+		if (!confirm("Hapus obrolan ini dari database?")) return;
+		await fetch(`/api/sessions/${id}`, { method: "DELETE" });
 		if (current === id) newChat();
 		await loadSessions();
 	}
@@ -210,31 +228,41 @@
 		const cadangan = messages.map((m) => ({ ...m }));
 		const currentSebelum = current;
 		busy = true;
-		error = '';
+		error = "";
 		if (ulang) {
-			const i = messages.findLastIndex((m) => m.role === 'user');
+			const i = messages.findLastIndex((m) => m.role === "user");
 			const lama = messages[i];
 			messages.splice(i);
-			messages.push({ role: 'user', content: pesan ?? lama.content, images: imgs });
+			messages.push({
+				role: "user",
+				content: pesan ?? lama.content,
+				images: imgs,
+			});
 		} else {
-			messages.push({ role: 'user', content: pesan, images: imgs });
+			messages.push({ role: "user", content: pesan, images: imgs });
 		}
-		messages.push({ role: 'assistant', content: '' });
+		messages.push({ role: "assistant", content: "" });
 		const idx = messages.length - 1;
 		scrollDown();
 		abort = new AbortController();
 		try {
-			const res = await fetch('/api/chat', {
-				method: 'POST',
-				headers: { 'content-type': 'application/json' },
-				body: JSON.stringify({ sesiId: current, pesan, images: imgs, mode, ulang }),
-				signal: abort.signal
+			const res = await fetch("/api/chat", {
+				method: "POST",
+				headers: { "content-type": "application/json" },
+				body: JSON.stringify({
+					sesiId: current,
+					pesan,
+					images: imgs,
+					mode,
+					ulang,
+				}),
+				signal: abort.signal,
 			});
 			if (!res.ok) {
 				const j = await res.json().catch(() => ({}));
 				throw new Error(j.error || `HTTP ${res.status}`);
 			}
-			const sid = res.headers.get('x-sesi-id');
+			const sid = res.headers.get("x-sesi-id");
 			if (sid) current = Number(sid);
 			const reader = res.body.getReader();
 			const dec = new TextDecoder();
@@ -245,10 +273,10 @@
 				scrollDown();
 			}
 		} catch (e) {
-			if (e.name === 'AbortError' && messages[idx]?.content) {
+			if (e.name === "AbortError" && messages[idx]?.content) {
 				// stopped gracefully
 			} else {
-				if (e.name !== 'AbortError') error = e.message;
+				if (e.name !== "AbortError") error = e.message;
 				messages = cadangan;
 				current = currentSebelum;
 				pulihkan?.();
@@ -261,13 +289,23 @@
 	}
 
 	async function send() {
-		const base = input.trim() || (files.length ? 'Jelaskan file ini.' : images.length ? 'Jelaskan gambar ini.' : '');
+		const base =
+			input.trim() ||
+			(files.length
+				? "Jelaskan file ini."
+				: images.length
+					? "Jelaskan gambar ini."
+					: "");
 		if (!base || busy) return;
-		const text = base + files.map((f) => `\n\n${FENCE}${f.name}\n${f.text}\n${FENCE}`).join('');
+		const text =
+			base +
+			files
+				.map((f) => `\n\n${FENCE}${f.name}\n${f.text}\n${FENCE}`)
+				.join("");
 		const kirim = [...images];
 		const kirimFiles = [...files];
 		const sedangEdit = editing;
-		input = '';
+		input = "";
 		images = [];
 		files = [];
 		editing = false;
@@ -280,7 +318,7 @@
 				images = kirim;
 				files = kirimFiles;
 				editing = sedangEdit;
-			}
+			},
 		});
 	}
 
@@ -300,24 +338,27 @@
 
 	function batalEdit() {
 		editing = false;
-		input = '';
+		input = "";
 		images = [];
 	}
 
 	async function bukaInstruksi() {
-		const res = await fetch('/api/profile/instruksi');
+		const res = await fetch("/api/profile/instruksi");
 		if (res.ok) instruksi = (await res.json()).instruksi;
 		dlg.showModal();
 	}
 
 	async function simpanInstruksi() {
-		const res = await fetch('/api/profile/instruksi', {
-			method: 'PUT',
-			headers: { 'content-type': 'application/json' },
-			body: JSON.stringify({ instruksi })
+		const res = await fetch("/api/profile/instruksi", {
+			method: "PUT",
+			headers: { "content-type": "application/json" },
+			body: JSON.stringify({ instruksi }),
 		});
 		if (res.ok) dlg.close();
-		else error = (await res.json().catch(() => ({}))).error || 'Gagal menyimpan instruksi';
+		else
+			error =
+				(await res.json().catch(() => ({}))).error ||
+				"Gagal menyimpan instruksi";
 	}
 
 	function resize(file, max = 1600) {
@@ -326,19 +367,19 @@
 			const url = URL.createObjectURL(file);
 			img.onload = () => {
 				const s = Math.min(1, max / Math.max(img.width, img.height));
-				const c = document.createElement('canvas');
+				const c = document.createElement("canvas");
 				c.width = Math.round(img.width * s);
 				c.height = Math.round(img.height * s);
-				const ctx = c.getContext('2d');
-				ctx.fillStyle = '#fff';
+				const ctx = c.getContext("2d");
+				ctx.fillStyle = "#fff";
 				ctx.fillRect(0, 0, c.width, c.height);
 				ctx.drawImage(img, 0, 0, c.width, c.height);
 				URL.revokeObjectURL(url);
-				resolve(c.toDataURL('image/jpeg', 0.85));
+				resolve(c.toDataURL("image/jpeg", 0.85));
 			};
 			img.onerror = () => {
 				URL.revokeObjectURL(url);
-				reject(new Error('Gagal membaca gambar'));
+				reject(new Error("Gagal membaca gambar"));
 			};
 			img.src = url;
 		});
@@ -346,14 +387,30 @@
 
 	async function addFiles(daftar) {
 		for (const f of [...daftar]) {
-			if (f.type.startsWith('image/')) {
-				if (images.length >= 4) { error = 'Maksimal 4 gambar per pesan'; continue; }
-				try { images.push(await resize(f)); } catch (e) { error = e.message; }
+			if (f.type.startsWith("image/")) {
+				if (images.length >= 4) {
+					error = "Maksimal 4 gambar per pesan";
+					continue;
+				}
+				try {
+					images.push(await resize(f));
+				} catch (e) {
+					error = e.message;
+				}
 			} else {
-				if (files.length >= 5) { error = 'Maksimal 5 file per pesan'; continue; }
-				if (f.size > 100_000) { error = `${f.name} terlalu besar (maks 100 KB)`; continue; }
+				if (files.length >= 5) {
+					error = "Maksimal 5 file per pesan";
+					continue;
+				}
+				if (f.size > 100_000) {
+					error = `${f.name} terlalu besar (maks 100 KB)`;
+					continue;
+				}
 				const text = await f.text();
-				if (text.includes('\u0000')) { error = `${f.name} bukan file teks`; continue; }
+				if (text.includes("\u0000")) {
+					error = `${f.name} bukan file teks`;
+					continue;
+				}
 				files.push({ name: f.name, text });
 			}
 		}
@@ -368,45 +425,60 @@
 	}
 
 	async function addGithub() {
-		const url = prompt('URL file GitHub (contoh: https://github.com/user/repo/blob/main/src/file.js)');
+		const url = prompt(
+			"URL file GitHub (contoh: https://github.com/user/repo/blob/main/src/file.js)",
+		);
 		if (!url) return;
-		if (files.length >= 5) { error = 'Maksimal 5 file per pesan'; return; }
-		const res = await fetch('/api/github?url=' + encodeURIComponent(url.trim()));
+		if (files.length >= 5) {
+			error = "Maksimal 5 file per pesan";
+			return;
+		}
+		const res = await fetch(
+			"/api/github?url=" + encodeURIComponent(url.trim()),
+		);
 		const j = await res.json().catch(() => ({}));
-		if (!res.ok) { error = j.error || `HTTP ${res.status}`; return; }
+		if (!res.ok) {
+			error = j.error || `HTTP ${res.status}`;
+			return;
+		}
 		files.push({ name: j.name, text: j.text });
 	}
 
 	function cari() {
 		clearTimeout(timer);
-		if (q.trim().length < 2) { results = null; return; }
+		if (q.trim().length < 2) {
+			results = null;
+			return;
+		}
 		timer = setTimeout(async () => {
-			const res = await fetch('/api/search?q=' + encodeURIComponent(q.trim()));
+			const res = await fetch(
+				"/api/search?q=" + encodeURIComponent(q.trim()),
+			);
 			if (res.ok) results = await res.json();
 		}, 300);
 	}
 
 	function bukaHasil(id) {
-		q = '';
+		q = "";
 		results = null;
 		openSession(id);
 	}
 
 	function onKey(e) {
-		if (e.key === 'Enter' && !e.shiftKey) {
+		if (e.key === "Enter" && !e.shiftKey) {
 			e.preventDefault();
 			send();
 		}
 	}
 
 	function parse(text) {
-		return text.split('```').map((p, i) => {
+		return text.split("```").map((p, i) => {
 			if (i % 2 === 0) return { code: false, html: marked.parse(p) };
-			const nl = p.indexOf('\n');
+			const nl = p.indexOf("\n");
 			return {
 				code: true,
-				lang: (nl === -1 ? p : p.slice(0, nl)).trim() || 'text',
-				text: nl === -1 ? '' : p.slice(nl + 1).replace(/\n$/, '')
+				lang: (nl === -1 ? p : p.slice(0, nl)).trim() || "text",
+				text: nl === -1 ? "" : p.slice(nl + 1).replace(/\n$/, ""),
 			};
 		});
 	}
@@ -421,7 +493,7 @@
 
 	function applyStarter(p) {
 		mode = p.mode;
-		input = p.prompt + '\n\n';
+		input = p.prompt + "\n\n";
 	}
 
 	onMount(loadSessions);
@@ -430,7 +502,7 @@
 <svelte:window onkeydown={handleKeydown} />
 
 <svelte:head>
-	<title>FedinAi — Cozy Matcha Studio</title>
+	<title>FerdinAi — Cozy Matcha Studio</title>
 </svelte:head>
 
 <div class="workspace">
@@ -449,11 +521,14 @@
 				<div class="matcha-logo">
 					<svg viewBox="0 0 34 34" fill="none" class="brand-svg">
 						<rect width="34" height="34" rx="10" fill="#2d5a3f" />
-						<path d="M17 7c-5.5 0-9.5 4.3-9.5 9.8 0 6.2 9.5 11.7 9.5 11.7s9.5-5.5 9.5-11.7C26.5 11.3 22.5 7 17 7zm0 6c2.8 0 5 2.2 5 5 0 3.5-5 7-5 7s-5-3.5-5-7c0-2.8 2.2-5 5-5z" fill="#fef3c7" />
+						<path
+							d="M17 7c-5.5 0-9.5 4.3-9.5 9.8 0 6.2 9.5 11.7 9.5 11.7s9.5-5.5 9.5-11.7C26.5 11.3 22.5 7 17 7zm0 6c2.8 0 5 2.2 5 5 0 3.5-5 7-5 7s-5-3.5-5-7c0-2.8 2.2-5 5-5z"
+							fill="#fef3c7"
+						/>
 					</svg>
 				</div>
 				<div class="brand-info">
-					<div class="brand-title">FEDINAI</div>
+					<div class="brand-title">FERDINAI</div>
 					<div class="brand-badge">
 						<span class="matcha-dot"></span>
 						<span>MATCHA STUDIO • SIAP</span>
@@ -469,8 +544,20 @@
 					<span class="active-profile-dot"></span>
 					<span class="active-profile-label">PROFILE AKTIF</span>
 				</div>
-				<button class="profile-switch-btn" onclick={toggleProfileMenu} title="Ganti Profile Aktif" aria-label="Ganti Profile Aktif">
-					<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+				<button
+					class="profile-switch-btn"
+					onclick={toggleProfileMenu}
+					title="Ganti Profile Aktif"
+					aria-label="Ganti Profile Aktif"
+				>
+					<svg
+						width="12"
+						height="12"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2.2"
+					>
 						<polyline points="16 3 21 3 21 8" />
 						<line x1="4" y1="20" x2="21" y2="3" />
 						<polyline points="21 16 21 21 16 21" />
@@ -489,16 +576,28 @@
 				title={`Profile aktif: ${profil}. Klik untuk ganti profile.`}
 				aria-label={`Profile aktif ${profil}`}
 			>
-				<div class="active-avatar-circle" style={getAvatarStyle(profil)}>
-					<span class="active-avatar-text">{getInitials(profil)}</span>
+				<div
+					class="active-avatar-circle"
+					style={getAvatarStyle(profil)}
+				>
+					<span class="active-avatar-text">{getInitials(profil)}</span
+					>
 					<span class="active-avatar-badge">✓</span>
 				</div>
 				<div class="active-profile-meta">
 					<span class="active-profile-name">{profil}</span>
-					<span class="active-profile-sub">Pilih / Ganti Profile</span>
+					<span class="active-profile-sub">Pilih / Ganti Profile</span
+					>
 				</div>
 				<div class="active-chevron" class:rotated={profileMenuOpen}>
-					<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+					<svg
+						width="14"
+						height="14"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2.5"
+					>
 						<polyline points="6 9 12 15 18 9" />
 					</svg>
 				</div>
@@ -506,25 +605,66 @@
 
 			<!-- Quick Tool Actions for Active Profile -->
 			<div class="active-profile-quick-actions">
-				<button class="active-quick-btn" onclick={bukaInstruksi} title="Aturan & Instruksi AI Profile ini">
-					<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+				<button
+					class="active-quick-btn"
+					onclick={bukaInstruksi}
+					title="Aturan & Instruksi AI Profile ini"
+				>
+					<svg
+						width="12"
+						height="12"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+					>
 						<path d="M12 20h9" />
-						<path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+						<path
+							d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"
+						/>
 					</svg>
 					<span>Instruksi</span>
 				</button>
-				<button class="active-quick-btn" onclick={ubahNamaProfil} title="Ganti Nama Profile">
-					<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-						<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-						<path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+				<button
+					class="active-quick-btn"
+					onclick={ubahNamaProfil}
+					title="Ganti Nama Profile"
+				>
+					<svg
+						width="12"
+						height="12"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+					>
+						<path
+							d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
+						/>
+						<path
+							d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
+						/>
 					</svg>
 					<span>Rename</span>
 				</button>
 				{#if profiles.length > 1}
-					<button class="active-quick-btn danger" onclick={hapusProfil} title="Hapus Profile Ini">
-						<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+					<button
+						class="active-quick-btn danger"
+						onclick={hapusProfil}
+						title="Hapus Profile Ini"
+					>
+						<svg
+							width="12"
+							height="12"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+						>
 							<polyline points="3 6 5 6 21 6" />
-							<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+							<path
+								d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+							/>
 						</svg>
 						<span>Hapus</span>
 					</button>
@@ -535,14 +675,27 @@
 			{#if profileMenuOpen}
 				<!-- svelte-ignore a11y_click_events_have_key_events -->
 				<!-- svelte-ignore a11y_no_static_element_interactions -->
-				<div class="profile-switcher-backdrop" onclick={closeProfileMenu}></div>
-				<div class="profile-switcher-popover" role="dialog" aria-label="Pilih Profile">
+				<div
+					class="profile-switcher-backdrop"
+					onclick={closeProfileMenu}
+				></div>
+				<div
+					class="profile-switcher-popover"
+					role="dialog"
+					aria-label="Pilih Profile"
+				>
 					<div class="popover-header">
 						<div class="popover-title-row">
 							<span class="popover-title">PILIH PROFILE</span>
-							<span class="popover-counter">{profiles.length} profile</span>
+							<span class="popover-counter"
+								>{profiles.length} profile</span
+							>
 						</div>
-						<button class="popover-close-btn" onclick={closeProfileMenu} aria-label="Tutup menu">✕</button>
+						<button
+							class="popover-close-btn"
+							onclick={closeProfileMenu}
+							aria-label="Tutup menu">✕</button
+						>
 					</div>
 
 					<div class="popover-profile-list">
@@ -553,13 +706,19 @@
 								onclick={() => gantiProfil(nama)}
 								title={`Ganti ke profile ${nama}`}
 							>
-								<div class="popover-item-avatar" style={getAvatarStyle(nama)}>
+								<div
+									class="popover-item-avatar"
+									style={getAvatarStyle(nama)}
+								>
 									<span>{getInitials(nama)}</span>
 								</div>
 								<div class="popover-item-info">
-									<span class="popover-item-name">{nama}</span>
+									<span class="popover-item-name">{nama}</span
+									>
 									{#if nama === profil}
-										<span class="popover-item-status">Sedang Aktif</span>
+										<span class="popover-item-status"
+											>Sedang Aktif</span
+										>
 									{/if}
 								</div>
 								{#if nama === profil}
@@ -571,7 +730,14 @@
 
 					<div class="popover-footer">
 						<button class="popover-add-btn" onclick={tambahProfil}>
-							<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+							<svg
+								width="13"
+								height="13"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2.5"
+							>
 								<line x1="12" y1="5" x2="12" y2="19" />
 								<line x1="5" y1="12" x2="19" y2="12" />
 							</svg>
@@ -585,7 +751,14 @@
 		<!-- Initiate New Chat Button -->
 		<button class="new-chat-btn" onclick={newChat}>
 			<span class="plus-icon">
-				<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+				<svg
+					width="14"
+					height="14"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2.5"
+				>
 					<line x1="12" y1="5" x2="12" y2="19" />
 					<line x1="5" y1="12" x2="19" y2="12" />
 				</svg>
@@ -597,7 +770,14 @@
 		<!-- Search Bar -->
 		<div class="search-box">
 			<span class="search-icon">
-				<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+				<svg
+					width="13"
+					height="13"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+				>
 					<circle cx="11" cy="11" r="8" />
 					<line x1="21" y1="21" x2="16.65" y2="16.65" />
 				</svg>
@@ -610,16 +790,27 @@
 				oninput={cari}
 			/>
 			{#if q}
-				<button class="clear-search" onclick={() => { q = ''; results = null; }}>×</button>
+				<button
+					class="clear-search"
+					onclick={() => {
+						q = "";
+						results = null;
+					}}>×</button
+				>
 			{/if}
 		</div>
 
 		<!-- Session History List -->
 		<div class="session-feed">
 			{#if results}
-				<div class="list-heading">// HASIL PENCARIAN ({results.length})</div>
+				<div class="list-heading">
+					// HASIL PENCARIAN ({results.length})
+				</div>
 				{#each results as r (r.id)}
-					<button class="search-hit-card" onclick={() => bukaHasil(r.id)}>
+					<button
+						class="search-hit-card"
+						onclick={() => bukaHasil(r.id)}
+					>
 						<div class="hit-title">{r.judul}</div>
 						<div class="hit-snippet">{r.cuplikan}</div>
 					</button>
@@ -632,16 +823,40 @@
 				<div class="list-heading">RIWAYAT PERCAKAPAN</div>
 				{#each sessions as s (s.id)}
 					<div class="session-item" class:active={s.id === current}>
-						<button class="session-link" onclick={() => openSession(s.id)}>
+						<button
+							class="session-link"
+							onclick={() => openSession(s.id)}
+						>
 							<span class="session-mark">
-								<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-									<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+								<svg
+									width="12"
+									height="12"
+									viewBox="0 0 24 24"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2"
+								>
+									<path
+										d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+									/>
 								</svg>
 							</span>
 							<span class="session-title-text">{s.judul}</span>
 						</button>
-						<button class="delete-btn" onclick={(e) => remove(s.id, e)} title="Hapus Obrolan" aria-label="Hapus Obrolan">
-							<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+						<button
+							class="delete-btn"
+							onclick={(e) => remove(s.id, e)}
+							title="Hapus Obrolan"
+							aria-label="Hapus Obrolan"
+						>
+							<svg
+								width="12"
+								height="12"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+							>
 								<line x1="18" y1="6" x2="6" y2="18" />
 								<line x1="6" y1="6" x2="18" y2="18" />
 							</svg>
@@ -659,7 +874,7 @@
 		<div class="sidebar-footer">
 			<div class="core-telemetry">
 				<span class="honey-badge-dot"></span>
-				<span>FEDINAI • STUDIO MATCHA</span>
+				<span>FERDINAI • STUDIO MATCHA</span>
 			</div>
 			<span class="latency-pill">v2.4</span>
 		</div>
@@ -669,34 +884,73 @@
 	<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 	<main
 		class:dragging
-		ondragover={(e) => { e.preventDefault(); dragging = true; }}
+		ondragover={(e) => {
+			e.preventDefault();
+			dragging = true;
+		}}
 		ondragleave={() => (dragging = false)}
-		ondrop={(e) => { e.preventDefault(); dragging = false; addFiles(e.dataTransfer.files); }}
+		ondrop={(e) => {
+			e.preventDefault();
+			dragging = false;
+			addFiles(e.dataTransfer.files);
+		}}
 	>
 		<!-- Top Application HUD -->
 		<header class="app-header">
 			<div class="header-left">
-				<button class="mobile-toggle" onclick={() => (sidebarOpen = !sidebarOpen)} aria-label="Menu">
-					<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+				<button
+					class="mobile-toggle"
+					onclick={() => (sidebarOpen = !sidebarOpen)}
+					aria-label="Menu"
+				>
+					<svg
+						width="16"
+						height="16"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+					>
 						<line x1="3" y1="12" x2="21" y2="12" />
 						<line x1="3" y1="6" x2="21" y2="6" />
 						<line x1="3" y1="18" x2="21" y2="18" />
 					</svg>
 				</button>
 				<div class="active-context-hud">
-					<span class="context-tag">PROFILE: <strong class="matcha-bold">{profil}</strong></span>
+					<span class="context-tag"
+						>PROFILE: <strong class="matcha-bold">{profil}</strong
+						></span
+					>
 					<span class="hud-divider">/</span>
-					<span class="context-tag">MODE: <strong class="honey-bold">{MODES.find((m) => m.key === mode)?.label}</strong></span>
+					<span class="context-tag"
+						>MODE: <strong class="honey-bold"
+							>{MODES.find((m) => m.key === mode)?.label}</strong
+						></span
+					>
 				</div>
 			</div>
 			<div class="header-right">
 				<!-- Clean Active Profile Pill in Header HUD -->
-				<button class="header-profile-pill" onclick={openProfileSwitcher} title="Klik untuk ganti profile aktif">
-					<span class="header-pill-avatar" style={getAvatarStyle(profil)}>
+				<button
+					class="header-profile-pill"
+					onclick={openProfileSwitcher}
+					title="Klik untuk ganti profile aktif"
+				>
+					<span
+						class="header-pill-avatar"
+						style={getAvatarStyle(profil)}
+					>
 						{getInitials(profil)}
 					</span>
 					<span class="header-pill-name">{profil}</span>
-					<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+					<svg
+						width="12"
+						height="12"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2.5"
+					>
 						<polyline points="6 9 12 15 18 9" />
 					</svg>
 				</button>
@@ -720,14 +974,26 @@
 			<div class="drop-overlay">
 				<div class="drop-modal">
 					<div class="drop-icon">
-						<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#2d5a3f" stroke-width="2">
-							<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+						<svg
+							width="36"
+							height="36"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="#2d5a3f"
+							stroke-width="2"
+						>
+							<path
+								d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
+							/>
 							<polyline points="17 8 12 3 7 8" />
 							<line x1="12" y1="3" x2="12" y2="15" />
 						</svg>
 					</div>
 					<h3>Lepaskan File atau Screenshot di Sini 🌿</h3>
-					<p>FedinAi akan langsung menganalisis filemu dengan teliti.</p>
+					<p>
+						FerdinAi akan langsung menganalisis filemu dengan
+						teliti.
+					</p>
 				</div>
 			</div>
 		{/if}
@@ -738,26 +1004,53 @@
 				<!-- Clean Warm Matcha Welcome Console -->
 				<div class="welcome-container">
 					<div class="hero-core">
-						<svg width="48" height="48" viewBox="0 0 44 44" fill="none">
-							<rect width="44" height="44" rx="14" fill="#2d5a3f" />
-							<path d="M22 10c-7 0-12 5.5-12 12.5 0 8 12 15 12 15s12-7 12-15C34 15.5 29 10 22 10zm0 7.5c3.6 0 6.5 2.8 6.5 6.5 0 4.5-6.5 9-6.5 9s-6.5-4.5-6.5-9c0-3.7 2.9-6.5 6.5-6.5z" fill="#fef3c7" />
+						<svg
+							width="48"
+							height="48"
+							viewBox="0 0 44 44"
+							fill="none"
+						>
+							<rect
+								width="44"
+								height="44"
+								rx="14"
+								fill="#2d5a3f"
+							/>
+							<path
+								d="M22 10c-7 0-12 5.5-12 12.5 0 8 12 15 12 15s12-7 12-15C34 15.5 29 10 22 10zm0 7.5c3.6 0 6.5 2.8 6.5 6.5 0 4.5-6.5 9-6.5 9s-6.5-4.5-6.5-9c0-3.7 2.9-6.5 6.5-6.5z"
+								fill="#fef3c7"
+							/>
 						</svg>
 					</div>
 
-					<h2 class="hero-title">Halo! Selamat Datang di FedinAi ✨</h2>
+					<h2 class="hero-title">
+						Halo! Selamat Datang di FerdinAi ✨
+					</h2>
 					<p class="hero-desc">
-						Teman asisten AI coding yang nyaman dan cerdas. Tanyakan kode, diskusikan logika, atau cari solusi bug dengan tenang 🍵🌿
+						Teman asisten AI coding yang nyaman dan cerdas. Tanyakan
+						kode, diskusikan logika, atau cari solusi bug dengan
+						tenang 🍵🌿
 					</p>
 
 					<!-- Quick Starter Prompts -->
 					<div class="starter-grid">
 						{#each starterPrompts as starter}
-							<button class="starter-card" onclick={() => applyStarter(starter)}>
+							<button
+								class="starter-card"
+								onclick={() => applyStarter(starter)}
+							>
 								<div class="starter-badge">{starter.title}</div>
 								<div class="starter-desc">{starter.desc}</div>
 								<div class="starter-action">
 									<span>PILIH TUGAS</span>
-									<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+									<svg
+										width="12"
+										height="12"
+										viewBox="0 0 24 24"
+										fill="none"
+										stroke="currentColor"
+										stroke-width="2"
+									>
 										<line x1="5" y1="12" x2="19" y2="12" />
 										<polyline points="12 5 19 12 12 19" />
 									</svg>
@@ -772,20 +1065,40 @@
 						<div class="message-card {m.role}">
 							<div class="message-meta">
 								<div class="sender-avatar {m.role}">
-									{#if m.role === 'assistant'}
-										<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-											<polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5" />
+									{#if m.role === "assistant"}
+										<svg
+											width="13"
+											height="13"
+											viewBox="0 0 24 24"
+											fill="none"
+											stroke="currentColor"
+											stroke-width="2.5"
+										>
+											<polygon
+												points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5"
+											/>
 											<circle cx="12" cy="12" r="3" />
 										</svg>
 									{:else}
-										<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-											<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+										<svg
+											width="13"
+											height="13"
+											viewBox="0 0 24 24"
+											fill="none"
+											stroke="currentColor"
+											stroke-width="2.5"
+										>
+											<path
+												d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"
+											/>
 											<circle cx="12" cy="7" r="4" />
 										</svg>
 									{/if}
 								</div>
 								<span class="sender-name">
-									{m.role === 'assistant' ? 'FEDIN AI 🌿' : 'KAMU'}
+									{m.role === "assistant"
+										? "FERDIN AI 🌿"
+										: "KAMU"}
 								</span>
 							</div>
 
@@ -807,29 +1120,68 @@
 										<div class="code-terminal">
 											<div class="code-header">
 												<div class="code-lang-tag">
-													<span class="code-badge-dot"></span>
-													<span>{p.lang.toUpperCase()}</span>
+													<span class="code-badge-dot"
+													></span>
+													<span
+														>{p.lang.toUpperCase()}</span
+													>
 												</div>
 												<button
 													class="copy-code-btn"
-													class:copied={copiedIndex === `${i}-${codeIdx}`}
-													onclick={() => copyCode(p.text, `${i}-${codeIdx}`)}
+													class:copied={copiedIndex ===
+														`${i}-${codeIdx}`}
+													onclick={() =>
+														copyCode(
+															p.text,
+															`${i}-${codeIdx}`,
+														)}
 												>
 													{#if copiedIndex === `${i}-${codeIdx}`}
-														<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-															<polyline points="20 6 9 17 4 12" />
+														<svg
+															width="12"
+															height="12"
+															viewBox="0 0 24 24"
+															fill="none"
+															stroke="currentColor"
+															stroke-width="2.5"
+														>
+															<polyline
+																points="20 6 9 17 4 12"
+															/>
 														</svg>
 														<span>TERSALIN!</span>
 													{:else}
-														<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-															<rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-															<path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+														<svg
+															width="12"
+															height="12"
+															viewBox="0 0 24 24"
+															fill="none"
+															stroke="currentColor"
+															stroke-width="2"
+														>
+															<rect
+																x="9"
+																y="9"
+																width="13"
+																height="13"
+																rx="2"
+																ry="2"
+															/>
+															<path
+																d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+															/>
 														</svg>
 														<span>SALIN KODE</span>
 													{/if}
 												</button>
 											</div>
-											<pre class="code-body"><code class="hljs">{@html sorot(p.text, p.lang)}</code></pre>
+											<pre class="code-body"><code
+													class="hljs"
+													>{@html sorot(
+														p.text,
+														p.lang,
+													)}</code
+												></pre>
 										</div>
 									{:else if p.html}
 										<div class="prose-content">
@@ -841,22 +1193,48 @@
 
 							<!-- Action Buttons -->
 							{#if !busy && current}
-								{#if m.role === 'assistant' && i === messages.length - 1}
+								{#if m.role === "assistant" && i === messages.length - 1}
 									<div class="message-action-row">
-										<button class="action-chip" onclick={cobaLagi}>
-											<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-												<polyline points="1 4 1 10 7 10" />
-												<path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+										<button
+											class="action-chip"
+											onclick={cobaLagi}
+										>
+											<svg
+												width="12"
+												height="12"
+												viewBox="0 0 24 24"
+												fill="none"
+												stroke="currentColor"
+												stroke-width="2"
+											>
+												<polyline
+													points="1 4 1 10 7 10"
+												/>
+												<path
+													d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"
+												/>
 											</svg>
 											<span>Coba Lagi ↺</span>
 										</button>
 									</div>
-								{:else if m.role === 'user' && i === ultimoUser}
+								{:else if m.role === "user" && i === ultimoUser}
 									<div class="message-action-row">
-										<button class="action-chip" onclick={editTerakhir}>
-											<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+										<button
+											class="action-chip"
+											onclick={editTerakhir}
+										>
+											<svg
+												width="12"
+												height="12"
+												viewBox="0 0 24 24"
+												fill="none"
+												stroke="currentColor"
+												stroke-width="2"
+											>
 												<path d="M12 20h9" />
-												<path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+												<path
+													d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"
+												/>
 											</svg>
 											<span>Edit Pesan</span>
 										</button>
@@ -873,14 +1251,23 @@
 		{#if error}
 			<div class="alert-banner">
 				<div class="alert-content">
-					<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+					<svg
+						width="16"
+						height="16"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+					>
 						<circle cx="12" cy="12" r="10" />
 						<line x1="12" y1="8" x2="12" y2="12" />
 						<line x1="12" y1="16" x2="12.01" y2="16" />
 					</svg>
 					<span>{error}</span>
 				</div>
-				<button class="dismiss-alert" onclick={() => (error = '')}>✕</button>
+				<button class="dismiss-alert" onclick={() => (error = "")}
+					>✕</button
+				>
 			</div>
 		{/if}
 
@@ -888,8 +1275,13 @@
 		{#if editing}
 			<div class="edit-mode-strip">
 				<span class="edit-icon">✎</span>
-				<span>Mode Edit: Mengubah pesan terakhir. Jawaban sebelumnya akan diganti.</span>
-				<button class="cancel-edit-btn" onclick={batalEdit}>Batal</button>
+				<span
+					>Mode Edit: Mengubah pesan terakhir. Jawaban sebelumnya akan
+					diganti.</span
+				>
+				<button class="cancel-edit-btn" onclick={batalEdit}
+					>Batal</button
+				>
 			</div>
 		{/if}
 
@@ -899,7 +1291,11 @@
 			<div class="mode-bar">
 				<div class="mode-scroll">
 					{#each MODES as m}
-						<button class="mode-pill" class:active={mode === m.key} onclick={() => (mode = m.key)}>
+						<button
+							class="mode-pill"
+							class:active={mode === m.key}
+							onclick={() => (mode = m.key)}
+						>
 							<span>{m.label}</span>
 						</button>
 					{/each}
@@ -911,19 +1307,36 @@
 				<div class="staging-queue">
 					{#each files as f, i}
 						<div class="file-stage-chip">
-							<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-								<path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
+							<svg
+								width="12"
+								height="12"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+							>
+								<path
+									d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"
+								/>
 								<polyline points="13 2 13 9 20 9" />
 							</svg>
 							<span class="stage-filename">{f.name}</span>
-							<button class="remove-stage" onclick={() => files.splice(i, 1)} aria-label="Hapus file">×</button>
+							<button
+								class="remove-stage"
+								onclick={() => files.splice(i, 1)}
+								aria-label="Hapus file">×</button
+							>
 						</div>
 					{/each}
 
 					{#each images as src, i}
 						<div class="image-stage-box">
 							<img {src} alt="lampiran" />
-							<button class="remove-stage img-remove" onclick={() => images.splice(i, 1)} aria-label="Hapus gambar">×</button>
+							<button
+								class="remove-stage img-remove"
+								onclick={() => images.splice(i, 1)}
+								aria-label="Hapus gambar">×</button
+							>
 						</div>
 					{/each}
 				</div>
@@ -932,14 +1345,42 @@
 			<!-- Textarea & Action Buttons Console -->
 			<div class="console-box">
 				<div class="console-tools">
-					<button class="icon-tool" onclick={() => fileInput.click()} title="Lampirkan File / Screenshot" aria-label="Lampirkan File">
-						<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-							<path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
+					<button
+						class="icon-tool"
+						onclick={() => fileInput.click()}
+						title="Lampirkan File / Screenshot"
+						aria-label="Lampirkan File"
+					>
+						<svg
+							width="16"
+							height="16"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+						>
+							<path
+								d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"
+							/>
 						</svg>
 					</button>
-					<button class="icon-tool" onclick={addGithub} title="Ambil file langsung dari GitHub URL" aria-label="Ambil GitHub">
-						<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-							<path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" />
+					<button
+						class="icon-tool"
+						onclick={addGithub}
+						title="Ambil file langsung dari GitHub URL"
+						aria-label="Ambil GitHub"
+					>
+						<svg
+							width="16"
+							height="16"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+						>
+							<path
+								d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"
+							/>
 						</svg>
 					</button>
 					<input
@@ -947,7 +1388,10 @@
 						multiple
 						hidden
 						bind:this={fileInput}
-						onchange={(e) => { addFiles(e.currentTarget.files); e.currentTarget.value = ''; }}
+						onchange={(e) => {
+							addFiles(e.currentTarget.files);
+							e.currentTarget.value = "";
+						}}
 					/>
 				</div>
 
@@ -963,15 +1407,39 @@
 				<div class="console-actions">
 					{#if busy}
 						<button class="matcha-btn stop-btn" onclick={stop}>
-							<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-								<rect x="6" y="6" width="12" height="12" rx="2" />
+							<svg
+								width="12"
+								height="12"
+								viewBox="0 0 24 24"
+								fill="currentColor"
+							>
+								<rect
+									x="6"
+									y="6"
+									width="12"
+									height="12"
+									rx="2"
+								/>
 							</svg>
 							<span>Hentikan</span>
 						</button>
 					{:else}
-						<button class="matcha-btn send-btn" onclick={send} disabled={!input.trim() && !files.length && !images.length}>
-							<span>{editing ? 'Perbarui' : 'Kirim ✨'}</span>
-							<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+						<button
+							class="matcha-btn send-btn"
+							onclick={send}
+							disabled={!input.trim() &&
+								!files.length &&
+								!images.length}
+						>
+							<span>{editing ? "Perbarui" : "Kirim ✨"}</span>
+							<svg
+								width="13"
+								height="13"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2.5"
+							>
 								<line x1="22" y1="2" x2="11" y2="13" />
 								<polygon points="22 2 15 22 11 13 2 9 22 2" />
 							</svg>
@@ -1004,8 +1472,9 @@
 		</div>
 
 		<p class="modal-desc">
-			Instruksi khusus yang otomatis disuntikkan ke dalam setiap percakapan pada profile ini.
-			Misalnya preferensi stack (SvelteKit, Tailwind, Python), aturan clean code, atau gaya bahasa.
+			Instruksi khusus yang otomatis disuntikkan ke dalam setiap
+			percakapan pada profile ini. Misalnya preferensi stack (SvelteKit,
+			Tailwind, Python), aturan clean code, atau gaya bahasa.
 		</p>
 
 		<div class="editor-wrapper">
@@ -1032,7 +1501,11 @@
 		margin: 0;
 		background: #f7f5ef;
 		color: #1c1917;
-		font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+		font-family:
+			"Plus Jakarta Sans",
+			system-ui,
+			-apple-system,
+			sans-serif;
 		overflow: hidden;
 	}
 
@@ -1089,7 +1562,7 @@
 	}
 
 	.brand-title {
-		font-family: 'Outfit', sans-serif;
+		font-family: "Outfit", sans-serif;
 		font-size: 18px;
 		font-weight: 800;
 		letter-spacing: 0.05em;
@@ -1101,7 +1574,7 @@
 		display: flex;
 		align-items: center;
 		gap: 6px;
-		font-family: 'JetBrains Mono', monospace;
+		font-family: "JetBrains Mono", monospace;
 		font-size: 10px;
 		color: #2d5a3f;
 		font-weight: 600;
@@ -1149,7 +1622,7 @@
 	}
 
 	.active-profile-label {
-		font-family: 'JetBrains Mono', monospace;
+		font-family: "JetBrains Mono", monospace;
 		font-size: 10px;
 		font-weight: 700;
 		color: #2d5a3f;
@@ -1163,7 +1636,7 @@
 		background: #f4f9f4;
 		border: 1px solid #c2dec6;
 		color: #2d5a3f;
-		font-family: 'JetBrains Mono', monospace;
+		font-family: "JetBrains Mono", monospace;
 		font-size: 10px;
 		font-weight: 600;
 		padding: 2px 7px;
@@ -1212,7 +1685,7 @@
 		align-items: center;
 		justify-content: center;
 		position: relative;
-		font-family: 'JetBrains Mono', monospace;
+		font-family: "JetBrains Mono", monospace;
 		font-size: 12px;
 		font-weight: 700;
 		flex-shrink: 0;
@@ -1267,7 +1740,9 @@
 		color: #78716c;
 		display: flex;
 		align-items: center;
-		transition: transform 0.2s ease, color 0.15s ease;
+		transition:
+			transform 0.2s ease,
+			color 0.15s ease;
 		flex-shrink: 0;
 	}
 
@@ -1352,7 +1827,7 @@
 	}
 
 	.popover-title {
-		font-family: 'JetBrains Mono', monospace;
+		font-family: "JetBrains Mono", monospace;
 		font-size: 10px;
 		font-weight: 700;
 		color: #2d5a3f;
@@ -1360,7 +1835,7 @@
 	}
 
 	.popover-counter {
-		font-family: 'JetBrains Mono', monospace;
+		font-family: "JetBrains Mono", monospace;
 		font-size: 9px;
 		color: #78716c;
 		background: #f7f5ef;
@@ -1423,7 +1898,7 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		font-family: 'JetBrains Mono', monospace;
+		font-family: "JetBrains Mono", monospace;
 		font-size: 10px;
 		font-weight: 700;
 		border: 1px solid transparent;
@@ -1475,7 +1950,7 @@
 		background: #faf8f5;
 		border: 1px dashed #c4bcad;
 		color: #2d5a3f;
-		font-family: 'Outfit', sans-serif;
+		font-family: "Outfit", sans-serif;
 		font-size: 11.5px;
 		font-weight: 600;
 		cursor: pointer;
@@ -1511,7 +1986,7 @@
 		width: 22px;
 		height: 22px;
 		border-radius: 50%;
-		font-family: 'JetBrains Mono', monospace;
+		font-family: "JetBrains Mono", monospace;
 		font-size: 9px;
 		font-weight: 700;
 		display: flex;
@@ -1545,12 +2020,14 @@
 		border: 1px solid #2d5a3f;
 		border-radius: 10px;
 		color: #ffffff;
-		font-family: 'Outfit', sans-serif;
+		font-family: "Outfit", sans-serif;
 		font-size: 12.5px;
 		font-weight: 700;
 		letter-spacing: 0.03em;
 		cursor: pointer;
-		transition: background 0.15s ease, transform 0.15s ease;
+		transition:
+			background 0.15s ease,
+			transform 0.15s ease;
 		box-shadow: 0 1px 3px rgba(45, 90, 63, 0.15);
 	}
 
@@ -1572,7 +2049,7 @@
 	}
 
 	.shortcut-tag {
-		font-family: 'JetBrains Mono', monospace;
+		font-family: "JetBrains Mono", monospace;
 		font-size: 10px;
 		background: #fef3c7;
 		border: 1px solid #fde68a;
@@ -1644,7 +2121,7 @@
 	}
 
 	.list-heading {
-		font-family: 'JetBrains Mono', monospace;
+		font-family: "JetBrains Mono", monospace;
 		font-size: 10px;
 		letter-spacing: 0.06em;
 		color: #78716c;
@@ -1718,7 +2195,9 @@
 		display: flex;
 		align-items: center;
 		opacity: 0;
-		transition: opacity 0.15s ease, color 0.15s ease;
+		transition:
+			opacity 0.15s ease,
+			color 0.15s ease;
 	}
 
 	.session-item:hover .delete-btn {
@@ -1780,7 +2259,7 @@
 		align-items: center;
 		padding-top: 10px;
 		border-top: 1px solid #e7e2d7;
-		font-family: 'JetBrains Mono', monospace;
+		font-family: "JetBrains Mono", monospace;
 		font-size: 10px;
 		color: #78716c;
 	}
@@ -1849,7 +2328,7 @@
 		display: flex;
 		align-items: center;
 		gap: 8px;
-		font-family: 'JetBrains Mono', monospace;
+		font-family: "JetBrains Mono", monospace;
 		font-size: 11px;
 		color: #78716c;
 	}
@@ -1870,7 +2349,7 @@
 		display: flex;
 		align-items: center;
 		gap: 6px;
-		font-family: 'JetBrains Mono', monospace;
+		font-family: "JetBrains Mono", monospace;
 		font-size: 11px;
 		letter-spacing: 0.04em;
 	}
@@ -1901,7 +2380,9 @@
 	}
 
 	@keyframes spin {
-		to { transform: rotate(360deg); }
+		to {
+			transform: rotate(360deg);
+		}
 	}
 
 	/* Drag-and-drop HUD */
@@ -1960,7 +2441,7 @@
 	}
 
 	.hero-title {
-		font-family: 'Outfit', sans-serif;
+		font-family: "Outfit", sans-serif;
 		font-size: 28px;
 		font-weight: 800;
 		letter-spacing: 0.02em;
@@ -1993,7 +2474,10 @@
 		display: flex;
 		flex-direction: column;
 		gap: 4px;
-		transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+		transition:
+			border-color 0.15s ease,
+			background 0.15s ease,
+			transform 0.15s ease;
 		box-shadow: 0 1px 3px rgba(45, 90, 63, 0.04);
 	}
 
@@ -2004,7 +2488,7 @@
 	}
 
 	.starter-badge {
-		font-family: 'Outfit', sans-serif;
+		font-family: "Outfit", sans-serif;
 		font-size: 14px;
 		font-weight: 700;
 		color: #2d5a3f;
@@ -2021,7 +2505,7 @@
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		font-family: 'JetBrains Mono', monospace;
+		font-family: "JetBrains Mono", monospace;
 		font-size: 10px;
 		font-weight: 600;
 		color: #2d5a3f;
@@ -2090,7 +2574,7 @@
 	}
 
 	.sender-name {
-		font-family: 'JetBrains Mono', monospace;
+		font-family: "JetBrains Mono", monospace;
 		font-size: 11px;
 		font-weight: 700;
 		letter-spacing: 0.05em;
@@ -2139,7 +2623,7 @@
 		display: flex;
 		align-items: center;
 		gap: 6px;
-		font-family: 'JetBrains Mono', monospace;
+		font-family: "JetBrains Mono", monospace;
 		font-size: 11px;
 		color: #2d5a3f;
 		font-weight: 600;
@@ -2160,7 +2644,7 @@
 		border: 1px solid #d5cec2;
 		border-radius: 5px;
 		padding: 3px 8px;
-		font-family: 'JetBrains Mono', monospace;
+		font-family: "JetBrains Mono", monospace;
 		font-size: 10px;
 		color: #57534e;
 		cursor: pointer;
@@ -2184,7 +2668,7 @@
 		padding: 12px;
 		overflow-x: auto;
 		max-height: 480px;
-		font-family: 'JetBrains Mono', monospace;
+		font-family: "JetBrains Mono", monospace;
 		font-size: 13px;
 		line-height: 1.5;
 		background: #faf8f5;
@@ -2230,7 +2714,7 @@
 	}
 
 	.prose-content :global(code) {
-		font-family: 'JetBrains Mono', monospace;
+		font-family: "JetBrains Mono", monospace;
 		font-size: 12px;
 		background: #f5efe6;
 		border: 1px solid #e7ded0;
@@ -2268,7 +2752,7 @@
 	.prose-content :global(th) {
 		padding: 10px 14px;
 		text-align: left;
-		font-family: 'Outfit', sans-serif;
+		font-family: "Outfit", sans-serif;
 		font-weight: 700;
 		font-size: 12px;
 		letter-spacing: 0.04em;
@@ -2338,7 +2822,7 @@
 		border-radius: 8px;
 		color: #b91c1c;
 		font-size: 12px;
-		font-family: 'JetBrains Mono', monospace;
+		font-family: "JetBrains Mono", monospace;
 	}
 
 	.alert-content {
@@ -2416,7 +2900,7 @@
 		background: #faf8f5;
 		border: 1px solid #e7e2d7;
 		color: #57534e;
-		font-family: 'JetBrains Mono', monospace;
+		font-family: "JetBrains Mono", monospace;
 		font-size: 11px;
 		cursor: pointer;
 		white-space: nowrap;
@@ -2453,7 +2937,7 @@
 		padding: 3px 8px;
 		font-size: 11px;
 		color: #2d5a3f;
-		font-family: 'JetBrains Mono', monospace;
+		font-family: "JetBrains Mono", monospace;
 	}
 
 	.stage-filename {
@@ -2574,7 +3058,7 @@
 		gap: 6px;
 		border-radius: 8px;
 		padding: 8px 16px;
-		font-family: 'Outfit', sans-serif;
+		font-family: "Outfit", sans-serif;
 		font-size: 13px;
 		font-weight: 700;
 		letter-spacing: 0.03em;
@@ -2620,7 +3104,7 @@
 		align-items: center;
 		justify-content: center;
 		gap: 8px;
-		font-family: 'JetBrains Mono', monospace;
+		font-family: "JetBrains Mono", monospace;
 		font-size: 10px;
 		color: #a8a29e;
 	}
@@ -2666,14 +3150,14 @@
 
 	.modal-title-group h3 {
 		margin: 4px 0 0;
-		font-family: 'Outfit', sans-serif;
+		font-family: "Outfit", sans-serif;
 		font-size: 18px;
 		color: #1c1917;
 	}
 
 	.modal-accent-pill {
 		display: inline-block;
-		font-family: 'JetBrains Mono', monospace;
+		font-family: "JetBrains Mono", monospace;
 		font-size: 9px;
 		font-weight: 700;
 		color: #1e462c;
@@ -2716,7 +3200,7 @@
 		background: transparent;
 		border: none;
 		color: #1c1917;
-		font-family: 'JetBrains Mono', monospace;
+		font-family: "JetBrains Mono", monospace;
 		font-size: 12px;
 		padding: 12px;
 		outline: none;
